@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Map2Poster</title>
+        <script type="text/javascript" src="poster_logic.js" defer></script>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div id="form_container">
+            <h1>Map-2-Poster</h1>
+            <form id="generate_form">
+                <label for="location">Location</label>
+                <input type="text" name="location" id="location" required>
+                <br>
+
+                <label for="distance">Distance (meters)</label>
+                <input type="text" name="distance" id="distance" required>
+                <br>
+
+
+                <label for="fg_color">Foreground Color</label>
+                <input type="color" name="fg_color" id="fg_color" value="#000000">
+                <br>
+
+
+                <label for="bg_color">Background Color</label>
+                <input type="color" name="bg_color" id="bg_color" value="#FFFFFF">
+                <br>
+
+                <input type="submit" id="generate_btn" value="Generate">
+            </form>
+        </div>
+        <div id="poster_list_container">
+
+        </div>
+    </body>
+</html>

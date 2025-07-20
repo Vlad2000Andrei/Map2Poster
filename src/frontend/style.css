@@ -1,0 +1,21 @@
+div#form_container {
+    float: inline-start;
+    width: 49%;
+    height: 100%;
+}
+
+div#poster_list_container {
+    width: 50%;
+    float: inline-end;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+img.poster_img {
+    width: 100%;
+}
+
+div#poster_container {
+    flex-grow: 1;
+    flex-shrink: 1;
+}

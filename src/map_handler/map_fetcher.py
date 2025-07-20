@@ -50,47 +50,48 @@ def add_centered_text(text : str, height : int, im : Image, font_size : int = 24
               stroke_width=font_weight,
               font_size = font_size)
 
+
+def make_poster(location : str = None, range : str = None) -> Image:
+    if location is None:
+        location = input("Choose a place name: ")
+    coords = ox.geocode(location)
+
+    if range is None:
+        range = float(input("Radius of included roads in meters: "))
+    REQUEST_RANGE = range * ROAD_DISTANCE_PADDING
+
+    print(f"Fetching map data...")
+    graph = ox.graph_from_point(center_point=coords, dist=REQUEST_RANGE, dist_type='bbox', network_type='drive', retain_all=True, truncate_by_edge=True)
+    print(f"Graph fetched.")
+
+    nodes, edges = ox.graph_to_gdfs(graph)
+    line_weights = pd.to_numeric(edges['lanes'], errors='coerce').fillna(1).to_list()
+
+    print(f"Plotting map...")
+    fig, ax = ox.plot_graph(graph, 
+                            node_size=0, 
+                            edge_linewidth=line_weights, 
+                            show=False, 
+                            figsize=(FIG_HEIGHT * ROAD_DISTANCE_PADDING, FIG_WIDTH * ROAD_DISTANCE_PADDING),
+                            bgcolor=BG_COLOR_HEX,
+                            edge_color=FG_COLOR_HEX)
+
+    image = plt_to_pil()
+    image = crop_image(image, 1/ROAD_DISTANCE_PADDING)
+    page = paste_on_page(image)
+    add_centered_text(location.upper(),
+                    image.size[1] + 400,
+                    page,
+                    100,
+                    font_weight=3)
+
+    add_centered_text(str(coords),
+                    image.size[1] + 550,
+                    page,
+                    50,
+                    font_weight=0.5)
     
+    return page
 
-
-location = input("Choose a place name: ")
-coords = ox.geocode(location)
-
-print(f"Coordinates of {location}: {coords}")
-range = float(input("Radius of included roads in meters: "))
-REQUEST_RANGE = range * ROAD_DISTANCE_PADDING
-
-print(f"Fetching map data...")
-graph = ox.graph_from_point(center_point=coords, dist=REQUEST_RANGE, dist_type='bbox', network_type='drive', retain_all=True, truncate_by_edge=True)
-print(f"Graph fetched.")
-
-nodes, edges = ox.graph_to_gdfs(graph)
-line_weights = pd.to_numeric(edges['lanes'], errors='coerce').fillna(1).to_list()
-
-print(f"Plotting map...")
-fig, ax = ox.plot_graph(graph, 
-                        node_size=0, 
-                        edge_linewidth=line_weights, 
-                        show=False, 
-                        figsize=(FIG_HEIGHT * ROAD_DISTANCE_PADDING, FIG_WIDTH * ROAD_DISTANCE_PADDING),
-                        bgcolor=BG_COLOR_HEX,
-                        edge_color=FG_COLOR_HEX)
-
-image = plt_to_pil()
-image = crop_image(image, 1/ROAD_DISTANCE_PADDING)
-page = paste_on_page(image)
-add_centered_text(location.upper(),
-                  image.size[1] + 400,
-                  page,
-                  100,
-                  font_weight=3)
-
-add_centered_text(str(coords),
-                  image.size[1] + 550,
-                  page,
-                  50,
-                  font_weight=0.5)
-
-page.show()
-print(f"Showing generated map poster. Image size is {image.size}. Poster size is {page.size}")
-# plt.show()
+if __name__ == "__main__":
+    make_poster().show()
