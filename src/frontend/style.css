@@ -1,21 +1,43 @@
-div#form_container {
-    float: inline-start;
-    width: 49%;
+/* Lock the page to the viewport size */
+html, body {
     height: 100%;
+    margin: 0;
+    font-family: sans-serif;
+    overflow: hidden; /* Prevents the main page from scrolling */
 }
 
+body {
+    display: flex;
+}
+
+/* Style the form column */
+div#form_container {
+    min-width: 15vw;
+    max-width: 20vw;
+    padding: 1em;
+    box-sizing: border-box; /* Ensures padding doesn't add to the width */
+}
+
+/* Style the scrollable poster column */
 div#poster_list_container {
-    width: 50%;
-    float: inline-end;
+    width: 100%;
+    overflow-y: auto; /* All scrolling happens here */
+    background-color: #f4f4f4;
+
+    /* Flex properties for posters inside this container */
     display: flex;
     flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 15px;
+    padding: 15px;
+    box-sizing: border-box;
 }
 
+/* Styling for the posters themselves */
 img.poster_img {
+    max-height: 95vh; /* Set max height to 90% of the viewport height */
     width: 100%;
-}
-
-div#poster_container {
-    flex-grow: 1;
-    flex-shrink: 1;
+    object-fit: contain; /* Scale image to fit without distortion */
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
