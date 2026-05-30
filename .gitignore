@@ -1,3 +1,31 @@
-.vscode
-.venv
-cache/*
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS files
+Thumbs.db
+db.ini
+.DS_Store
+
+# Project-specific caches and temporary outputs
+cache/
+test_poster*.png

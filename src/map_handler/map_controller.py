@@ -1,6 +1,5 @@
 from flask import Flask, request, send_file
 import map_fetcher
-from PIL import ImageColor
 from io import BytesIO
 
 
@@ -10,13 +9,10 @@ app = Flask(__name__)
 def get_poster():
     location = request.args.get('location')
     distance = int(request.args.get('distance'))
-    map_fetcher.FG_COLOR_HEX = request.args.get("fg_color", "#000000")
-    map_fetcher.FG_COLOR_RGB = ImageColor.getrgb(map_fetcher.FG_COLOR_HEX)
-    map_fetcher.BG_COLOR_HEX = request.args.get("bg_color", "#FFFFFF")
-    map_fetcher.BG_COLOR_RGB = ImageColor.getrgb(map_fetcher.BG_COLOR_HEX)
-    print(map_fetcher.FG_COLOR_HEX, map_fetcher.FG_COLOR_RGB, map_fetcher.BG_COLOR_HEX, map_fetcher.BG_COLOR_RGB)
+    fg_color = request.args.get("fg_color", "#000000")
+    bg_color = request.args.get("bg_color", "#FFFFFF")
     
-    image = map_fetcher.make_poster(location=location, range=distance)
+    image = map_fetcher.make_poster(location=location, range=distance, bg_color_hex=bg_color, fg_color_hex=fg_color)
     img_io = BytesIO()
     image.save(img_io, 'PNG')
     img_io.seek(0)
