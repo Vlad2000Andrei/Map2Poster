@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Poetry
+.poetry/
+poetry.lock.bak
+
+# OSMnx Cache
+src/map_handler/cache/
+
+# Local Dev/IDE
+.vscode/
+*.code-workspace
+.idea/
+.gemini/

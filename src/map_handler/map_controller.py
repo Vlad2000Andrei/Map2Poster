@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, send_file
 import map_fetcher
 from io import BytesIO
@@ -32,4 +33,7 @@ def get_home():
     return send_file("../frontend/index.html", mimetype='text/html')
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0")
+    if "PORT" not in os.environ:
+        raise ValueError("PORT environment variable must be set.")
+    port = int(os.environ["PORT"])
+    app.run(debug=True, host="0.0.0.0", port=port)
