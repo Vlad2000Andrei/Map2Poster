@@ -1,37 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-        <title>Map2Poster</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Map2Poster - Custom Road Map Poster Generator</title>
+        
+        <!-- Google Fonts (Outfit and Inter) -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        
         <script type="text/javascript" src="poster_logic.js" defer></script>
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div id="form_container">
-            <h1>Map-2-Poster</h1>
-            <form id="generate_form">
-                <label for="location">Location</label>
-                <input type="text" name="location" id="location" required>
-                <br>
-
-                <label for="distance">Distance (meters)</label>
-                <input type="text" name="distance" id="distance" required>
-                <br>
-
-
-                <label for="fg_color">Foreground Color</label>
-                <input type="color" name="fg_color" id="fg_color" value="#000000">
-                <br>
-
-
-                <label for="bg_color">Background Color</label>
-                <input type="color" name="bg_color" id="bg_color" value="#FFFFFF">
-                <br>
-
-                <input type="submit" id="generate_btn" value="Generate">
-            </form>
-        </div>
-        <div id="poster_list_container">
-
+        <!-- Background decorative blur elements -->
+        <div class="bg-blur-blob blob-1"></div>
+        <div class="bg-blur-blob blob-2"></div>
+        
+        <div id="app_container">
+            <!-- Sidebar (Control Panel - Left) -->
+            <aside id="form_container">
+                <header class="brand-header">
+                    <span class="brand-logo">🗺️</span>
+                    <div class="brand-text">
+                        <h1>Map2Poster</h1>
+                        <p>Create stunning custom road network prints</p>
+                    </div>
+                </header>
+                
+                <form id="generate_form">
+                    <!-- Location Input -->
+                    <div class="input-group">
+                        <label for="location">Location</label>
+                        <div class="input-with-action">
+                            <input type="text" name="location" id="location" placeholder="e.g., Paris, France" required autocomplete="off">
+                            <button type="button" id="clear_location_btn" class="clear-btn" aria-label="Clear location">&times;</button>
+                        </div>
+                        <div class="suggestions-container" id="suggestions_container">
+                            <button type="button" class="suggestion-tag" data-val="Paris, France">Paris</button>
+                            <button type="button" class="suggestion-tag" data-val="New York City, NY">New York</button>
+                            <button type="button" class="suggestion-tag" data-val="Tokyo, Japan">Tokyo</button>
+                            <button type="button" class="suggestion-tag" data-val="Rome, Italy">Rome</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Distance Input with Synced Slider -->
+                    <div class="input-group">
+                        <div class="label-row">
+                            <label for="distance">Radius (meters)</label>
+                            <span class="unit-indicator" id="distance_val_display">2000m</span>
+                        </div>
+                        <div class="slider-input-row">
+                            <input type="range" id="distance_slider" min="500" max="10000" step="100" value="2000">
+                            <input type="number" name="distance" id="distance" min="500" max="10000" value="2000" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Foreground / Background Color Pickers -->
+                    <div class="input-group">
+                        <label>Color Customization</label>
+                        <div class="color-picker-row">
+                            <div class="color-picker-wrapper">
+                                <span class="color-label">Foreground</span>
+                                <div class="color-input-container">
+                                    <input type="color" name="fg_color" id="fg_color" value="#000000">
+                                    <span class="color-hex-text" id="fg_hex_text">#000000</span>
+                                </div>
+                            </div>
+                            <div class="color-picker-wrapper">
+                                <span class="color-label">Background</span>
+                                <div class="color-input-container">
+                                    <input type="color" name="bg_color" id="bg_color" value="#FFFFFF">
+                                    <span class="color-hex-text" id="bg_hex_text">#FFFFFF</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Theme Presets -->
+                    <div class="input-group">
+                        <label>Preset Themes</label>
+                        <div class="theme-presets">
+                            <button type="button" class="preset-btn" data-fg="#000000" data-bg="#ffffff" title="Classic Light">
+                                <span class="preset-preview" style="background: linear-gradient(135deg, #000000 50%, #ffffff 50%); border: 1px solid rgba(255, 255, 255, 0.15);"></span>
+                            </button>
+                            <button type="button" class="preset-btn" data-fg="#ffffff" data-bg="#0f172a" title="Midnight Slate">
+                                <span class="preset-preview" style="background: linear-gradient(135deg, #ffffff 50%, #0f172a 50%);"></span>
+                            </button>
+                            <button type="button" class="preset-btn" data-fg="#00ffcc" data-bg="#0d0d0d" title="Cyberpunk Neon">
+                                <span class="preset-preview" style="background: linear-gradient(135deg, #00ffcc 50%, #0d0d0d 50%);"></span>
+                            </button>
+                            <button type="button" class="preset-btn" data-fg="#2e7d32" data-bg="#f1f8e9" title="Forest Minimal">
+                                <span class="preset-preview" style="background: linear-gradient(135deg, #2e7d32 50%, #f1f8e9 50%);"></span>
+                            </button>
+                            <button type="button" class="preset-btn" data-fg="#d84315" data-bg="#ffebd8" title="Terracotta Warm">
+                                <span class="preset-preview" style="background: linear-gradient(135deg, #d84315 50%, #ffebd8 50%);"></span>
+                            </button>
+                            <button type="button" class="preset-btn" data-fg="#0284c7" data-bg="#f0f9ff" title="Oceanic Clean">
+                                <span class="preset-preview" style="background: linear-gradient(135deg, #0284c7 50%, #f0f9ff 50%);"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="generate_btn" class="generate-btn">
+                        <span class="btn-text">Generate Poster</span>
+                        <span class="spinner" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </aside>
+            
+            <!-- Main Panel (Poster Gallery - Right) -->
+            <main id="poster_list_container">
+                <div id="onboarding_card" class="onboarding-card">
+                    <div class="onboarding-icon">🗺️</div>
+                    <h2>Create Your First Poster</h2>
+                    <p>Enter a location, select your preferred radius and custom colors, then click <strong>Generate</strong> to render your personalized road network map poster.</p>
+                    <div class="onboarding-hints">
+                        <div class="hint-item">✨ Supports any global city, town, or notable area</div>
+                        <div class="hint-item">⚡ Live render updates streamed from the server</div>
+                        <div class="hint-item">💾 Save and share high-resolution print files</div>
+                    </div>
+                </div>
+            </main>
         </div>
     </body>
-</html>
+</html>
