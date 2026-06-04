@@ -5,17 +5,20 @@ set -e
 
 # Help function
 show_help() {
-  echo "Usage: ./build.sh [-t <tag>]"
+  echo "Usage: ./build.sh [-t <tag>] [-p <platform>]"
   echo "  -t  Custom image tag (defaults to version in pyproject.toml)"
+  echo "  -p  Target platform (e.g., linux/arm64)"
   exit 1
 }
 
 TAG=""
+PLATFORM=""
 
 # Parse arguments
-while getopts "t:h" opt; do
+while getopts "t:p:h" opt; do
   case $opt in
     t) TAG="$OPTARG" ;;
+    p) PLATFORM="$OPTARG" ;;
     h) show_help ;;
     *) show_help ;;
   esac
@@ -39,8 +42,13 @@ fi
 VERSION_TAG="map2poster:$TAG"
 LATEST_TAG="map2poster:latest"
 
-echo "Building Docker image locally..."
-docker build -t "$VERSION_TAG" -t "$LATEST_TAG" "$SCRIPT_DIR/.."
+if [ -n "$PLATFORM" ]; then
+  echo "Building Docker image for platform '$PLATFORM' locally..."
+  docker buildx build --platform "$PLATFORM" --load -t "$VERSION_TAG" -t "$LATEST_TAG" "$SCRIPT_DIR/.."
+else
+  echo "Building Docker image locally..."
+  docker build -t "$VERSION_TAG" -t "$LATEST_TAG" "$SCRIPT_DIR/.."
+fi
 
 echo "Successfully built local images:"
 echo " - $VERSION_TAG"

@@ -3,7 +3,10 @@ param (
     [string]$Username,
 
     [Parameter(Mandatory=$false, HelpMessage="Custom tag for the image (defaults to version in pyproject.toml)")]
-    [string]$Tag = $null
+    [string]$Tag = $null,
+
+    [Parameter(Mandatory=$false, HelpMessage="Target platforms (comma-separated, defaults to 'linux/amd64,linux/arm64')")]
+    [string]$Platforms = "linux/amd64,linux/arm64"
 )
 
 # Determine version from pyproject.toml if not specified
@@ -28,27 +31,11 @@ $ImageBase = "$Username/map2poster"
 $VersionTag = "${ImageBase}:${Tag}"
 $LatestTag = "${ImageBase}:latest"
 
-Write-Host "Building Docker image..." -ForegroundColor Cyan
-docker build -t $VersionTag -t $LatestTag (Resolve-Path "$PSScriptRoot/..").Path
+Write-Host "Building and pushing multi-platform Docker image for platforms '$Platforms'..." -ForegroundColor Cyan
+docker buildx build --platform $Platforms -t $VersionTag -t $LatestTag --push (Resolve-Path "$PSScriptRoot/..").Path
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Docker build failed!"
-    exit 1
-}
-
-Write-Host "Pushing image '$VersionTag' to Docker Hub..." -ForegroundColor Cyan
-docker push $VersionTag
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Docker push for version tag failed! Make sure you are logged in using 'docker login'."
-    exit 1
-}
-
-Write-Host "Pushing image '$LatestTag' to Docker Hub..." -ForegroundColor Cyan
-docker push $LatestTag
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Docker push for latest tag failed!"
+    Write-Error "Docker build/push failed! Make sure you have buildx set up and are logged in using 'docker login'."
     exit 1
 }
 

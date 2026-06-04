@@ -5,20 +5,23 @@ set -e
 
 # Help function
 show_help() {
-  echo "Usage: ./publish.sh -u <dockerhub_username> [-t <tag>]"
+  echo "Usage: ./publish.sh -u <dockerhub_username> [-t <tag>] [-p <platforms>]"
   echo "  -u  Docker Hub username (required)"
   echo "  -t  Custom image tag (defaults to version in pyproject.toml)"
+  echo "  -p  Target platforms (comma-separated, defaults to 'linux/amd64,linux/arm64')"
   exit 1
 }
 
 USERNAME=""
 TAG=""
+PLATFORMS="linux/amd64,linux/arm64"
 
 # Parse arguments
-while getopts "u:t:h" opt; do
+while getopts "u:t:p:h" opt; do
   case $opt in
     u) USERNAME="$OPTARG" ;;
     t) TAG="$OPTARG" ;;
+    p) PLATFORMS="$OPTARG" ;;
     h) show_help ;;
     *) show_help ;;
   esac
@@ -51,13 +54,7 @@ IMAGE_BASE="$USERNAME/map2poster"
 VERSION_TAG="$IMAGE_BASE:$TAG"
 LATEST_TAG="$IMAGE_BASE:latest"
 
-echo "Building Docker image..."
-docker build -t "$VERSION_TAG" -t "$LATEST_TAG" "$SCRIPT_DIR/.."
-
-echo "Pushing image '$VERSION_TAG' to Docker Hub..."
-docker push "$VERSION_TAG"
-
-echo "Pushing image '$LATEST_TAG' to Docker Hub..."
-docker push "$LATEST_TAG"
+echo "Building and pushing multi-platform Docker image for platforms '$PLATFORMS'..."
+docker buildx build --platform "$PLATFORMS" -t "$VERSION_TAG" -t "$LATEST_TAG" --push "$SCRIPT_DIR/.."
 
 echo "Successfully published $VERSION_TAG and $LATEST_TAG to Docker Hub!"
