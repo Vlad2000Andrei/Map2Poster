@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "map2poster"
-version = "0.2.3"
+version = "0.2.4"
 description = "A Flask web app to generate maps as poster-ready images."
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
