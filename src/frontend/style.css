@@ -440,7 +440,8 @@ input[type="number"]:focus {
    Poster Card Layout
    ========================================== */
 .poster-card {
-    width: 340px;
+    width: 440px;
+    max-width: 100%;
     background: rgba(30, 41, 59, 0.45);
     backdrop-filter: blur(16px);
     border: 1px solid var(--panel-border);
@@ -562,7 +563,8 @@ input[type="number"]:focus {
    Skeleton Shimmer Loader Card
    ========================================== */
 .skeleton-card {
-    width: 340px;
+    width: 440px;
+    max-width: 100%;
     background: rgba(30, 41, 59, 0.35);
     border: 1px dashed rgba(255, 255, 255, 0.15);
     border-radius: 20px;
