@@ -66,7 +66,9 @@ def add_centered_text(text: str, height: int, im: Image, font_size: int = 24, fo
               font_size=font_size)
 
 
-def make_poster(location: str = None, range: float = None, bg_color_hex: str = "#FFFFFF", fg_color_hex: str = "#000000") -> Image:
+def make_poster(location: str = None, range: float = None, bg_color_hex: str = "#FFFFFF", fg_color_hex: str = "#000000", callback=None) -> tuple:
+    if callback:
+        callback("fetching")
     if location is None:
         location = input("Choose a place name: ")
     coords = ox.geocode(location)
@@ -83,8 +85,14 @@ def make_poster(location: str = None, range: float = None, bg_color_hex: str = "
                                 retain_all=True, truncate_by_edge=True)
     print(f"Graph fetched.")
 
+    if callback:
+        callback("parsing")
+
     nodes, edges = ox.graph_to_gdfs(graph)
     line_weights = pd.to_numeric(edges['lanes'], errors='coerce').fillna(1).to_list()
+
+    if callback:
+        callback("plotting")
 
     print(f"Plotting map...")
     fig, ax = ox.plot_graph(graph,
@@ -100,8 +108,16 @@ def make_poster(location: str = None, range: float = None, bg_color_hex: str = "
 
     image = plt_to_pil(fig, bg_color_hex)
     plt.close(fig)
+
+    if callback:
+        callback("cropping")
+
     image = crop_image(image, 1 / ROAD_DISTANCE_PADDING)
     page = paste_on_page(image, bg_color_rgb)
+
+    if callback:
+        callback("finalizing")
+
     add_centered_text(location.upper(),
                       image.size[1] + 400,
                       page,
@@ -116,9 +132,10 @@ def make_poster(location: str = None, range: float = None, bg_color_hex: str = "
                       font_weight=0.5,
                       fg_color_rgb=fg_color_rgb)
 
-    return page
+    return page, coords
 
 
 if __name__ == "__main__":
-    make_poster().show()
+    page, coords = make_poster()
+    page.show()
 
