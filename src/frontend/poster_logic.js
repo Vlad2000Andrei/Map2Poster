@@ -143,10 +143,14 @@ function generatePoster(e) {
             const swatchFg = document.createElement("div");
             swatchFg.classList.add("color-swatch-circle");
             swatchFg.style.backgroundColor = fg;
+            swatchFg.title = `Foreground: ${fg} (Click to use)`;
+            swatchFg.addEventListener("click", (e) => showColorMenu(e, swatchFg, fg));
 
             const swatchBg = document.createElement("div");
             swatchBg.classList.add("color-swatch-circle");
             swatchBg.style.backgroundColor = bg;
+            swatchBg.title = `Background: ${bg} (Click to use)`;
+            swatchBg.addEventListener("click", (e) => showColorMenu(e, swatchBg, bg));
 
             swatches.appendChild(swatchFg);
             swatches.appendChild(swatchBg);
@@ -187,4 +191,60 @@ function generatePoster(e) {
             generateBtn.querySelector(".spinner").style.display = "none";
             generateBtn.querySelector(".btn-text").textContent = "Generate Poster";
         });
-}
+}
+
+// ==========================================
+// 6. Interactive Swatch Color Pop-up Menu
+// ==========================================
+let activeColorMenu = null;
+
+function showColorMenu(e, swatch, color) {
+    e.stopPropagation(); // Avoid triggering document click menu close
+
+    if (activeColorMenu) {
+        activeColorMenu.remove();
+    }
+
+    const menu = document.createElement("div");
+    menu.className = "color-popup-menu";
+    
+    // Position menu below the swatch dynamically
+    const rect = swatch.getBoundingClientRect();
+    menu.style.position = "fixed";
+    menu.style.top = `${rect.bottom + 6}px`;
+    // Align menu horizontal center with swatch
+    menu.style.left = `${rect.left + (rect.width / 2) - 65}px`; 
+
+    const useAsFgBtn = document.createElement("button");
+    useAsFgBtn.className = "menu-item";
+    useAsFgBtn.textContent = "Use as Foreground";
+    useAsFgBtn.addEventListener("click", () => {
+        fgColorInput.value = color;
+        updateHexText(fgColorInput, fgHexText);
+        menu.remove();
+        activeColorMenu = null;
+    });
+
+    const useAsBgBtn = document.createElement("button");
+    useAsBgBtn.className = "menu-item";
+    useAsBgBtn.textContent = "Use as Background";
+    useAsBgBtn.addEventListener("click", () => {
+        bgColorInput.value = color;
+        updateHexText(bgColorInput, bgHexText);
+        menu.remove();
+        activeColorMenu = null;
+    });
+
+    menu.appendChild(useAsFgBtn);
+    menu.appendChild(useAsBgBtn);
+    document.body.appendChild(menu);
+    activeColorMenu = menu;
+}
+
+// Close the active menu when clicking anywhere else
+document.addEventListener("click", () => {
+    if (activeColorMenu) {
+        activeColorMenu.remove();
+        activeColorMenu = null;
+    }
+});
