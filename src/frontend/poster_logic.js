@@ -3,7 +3,6 @@ const form = document.getElementById("generate_form");
 const posterContainerList = document.getElementById("poster_list_container");
 const locationInput = document.getElementById("location");
 const clearLocationBtn = document.getElementById("clear_location_btn");
-const suggestionsContainer = document.getElementById("suggestions_container");
 const distanceSlider = document.getElementById("distance_slider");
 const distanceInput = document.getElementById("distance");
 const distanceValDisplay = document.getElementById("distance_val_display");
@@ -11,7 +10,6 @@ const fgColorInput = document.getElementById("fg_color");
 const bgColorInput = document.getElementById("bg_color");
 const fgHexText = document.getElementById("fg_hex_text");
 const bgHexText = document.getElementById("bg_hex_text");
-const presetButtons = document.querySelectorAll(".preset-btn");
 const generateBtn = document.getElementById("generate_btn");
 const onboardingCard = document.getElementById("onboarding_card");
 
@@ -55,17 +53,8 @@ clearLocationBtn.addEventListener("click", () => {
     locationInput.focus();
 });
 
-// Handle Quick Suggestions
-suggestionsContainer.addEventListener("click", (e) => {
-    const btn = e.target.closest(".suggestion-tag");
-    if (btn) {
-        locationInput.value = btn.getAttribute("data-val");
-        toggleClearBtn();
-    }
-});
-
 // ==========================================
-// 3. Color Picker Hex Sync & Presets
+// 3. Color Picker Hex Sync
 // ==========================================
 function updateHexText(picker, textSpan) {
     textSpan.textContent = picker.value.toUpperCase();
@@ -77,18 +66,6 @@ bgColorInput.addEventListener("input", () => updateHexText(bgColorInput, bgHexTe
 // Initialize color tags
 updateHexText(fgColorInput, fgHexText);
 updateHexText(bgColorInput, bgHexText);
-
-// Preset Clicks
-presetButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-        const fg = btn.getAttribute("data-fg");
-        const bg = btn.getAttribute("data-bg");
-        fgColorInput.value = fg;
-        bgColorInput.value = bg;
-        updateHexText(fgColorInput, fgHexText);
-        updateHexText(bgColorInput, bgHexText);
-    });
-});
 
 // ==========================================
 // 4. Onboarding Card Toggling

@@ -210,32 +210,6 @@ input[type="number"]:focus {
     box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
 }
 
-/* Suggestions tags */
-.suggestions-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.25rem;
-}
-
-.suggestion-tag {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 9999px;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-family: var(--font-body);
-    transition: all 0.2s ease;
-}
-
-.suggestion-tag:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
-    color: var(--text-primary);
-    transform: translateY(-1px);
-}
 
 /* Synced slider inputs */
 .label-row {
@@ -339,43 +313,6 @@ input[type="number"]:focus {
     color: var(--text-secondary);
 }
 
-/* Presets styling */
-.theme-presets {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.5rem;
-    margin-top: 0.2rem;
-}
-
-.preset-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    outline: none;
-}
-
-.preset-preview {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: block;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1.5px solid transparent;
-}
-
-.preset-btn:hover .preset-preview {
-    transform: scale(1.2);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
-
-.preset-btn:focus .preset-preview {
-    border-color: var(--primary-accent);
-}
 
 /* Generate Button */
 .generate-btn {
