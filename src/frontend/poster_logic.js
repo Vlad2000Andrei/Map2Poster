@@ -5,7 +5,6 @@ const locationInput = document.getElementById("location");
 const clearLocationBtn = document.getElementById("clear_location_btn");
 const distanceSlider = document.getElementById("distance_slider");
 const distanceInput = document.getElementById("distance");
-const distanceValDisplay = document.getElementById("distance_val_display");
 const fgColorInput = document.getElementById("fg_color");
 const bgColorInput = document.getElementById("bg_color");
 const fgHexText = document.getElementById("fg_hex_text");
@@ -21,7 +20,6 @@ function updateDistance(val) {
     let clampedVal = Math.max(500, Math.min(10000, parseInt(val) || 2000));
     distanceSlider.value = clampedVal;
     distanceInput.value = clampedVal;
-    distanceValDisplay.textContent = `${clampedVal}m`;
 }
 
 distanceSlider.addEventListener("input", (e) => {
