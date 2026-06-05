@@ -12,6 +12,7 @@ const fgHexText = document.getElementById("fg_hex_text");
 const bgHexText = document.getElementById("bg_hex_text");
 const generateBtn = document.getElementById("generate_btn");
 const onboardingCard = document.getElementById("onboarding_card");
+const swapColorsBtn = document.getElementById("swap_colors_btn");
 
 // ==========================================
 // 1. Bidirectional Distance Synchronization
@@ -66,6 +67,20 @@ bgColorInput.addEventListener("input", () => updateHexText(bgColorInput, bgHexTe
 // Initialize color tags
 updateHexText(fgColorInput, fgHexText);
 updateHexText(bgColorInput, bgHexText);
+
+// ==========================================
+// 3.2. Swap Colors Action
+// ==========================================
+if (swapColorsBtn) {
+    swapColorsBtn.addEventListener("click", () => {
+        const tempColor = fgColorInput.value;
+        fgColorInput.value = bgColorInput.value;
+        bgColorInput.value = tempColor;
+        
+        updateHexText(fgColorInput, fgHexText);
+        updateHexText(bgColorInput, bgHexText);
+    });
+}
 
 // ==========================================
 // 3.5. Parse URL parameters on load
