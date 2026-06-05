@@ -5,13 +5,13 @@ const locationInput = document.getElementById("location");
 const clearLocationBtn = document.getElementById("clear_location_btn");
 const distanceSlider = document.getElementById("distance_slider");
 const distanceInput = document.getElementById("distance");
-const distanceValDisplay = document.getElementById("distance_val_display");
 const fgColorInput = document.getElementById("fg_color");
 const bgColorInput = document.getElementById("bg_color");
 const fgHexText = document.getElementById("fg_hex_text");
 const bgHexText = document.getElementById("bg_hex_text");
 const generateBtn = document.getElementById("generate_btn");
 const onboardingCard = document.getElementById("onboarding_card");
+const swapColorsBtn = document.getElementById("swap_colors_btn");
 
 // ==========================================
 // 1. Bidirectional Distance Synchronization
@@ -20,7 +20,6 @@ function updateDistance(val) {
     let clampedVal = Math.max(500, Math.min(10000, parseInt(val) || 2000));
     distanceSlider.value = clampedVal;
     distanceInput.value = clampedVal;
-    distanceValDisplay.textContent = `${clampedVal}m`;
 }
 
 distanceSlider.addEventListener("input", (e) => {
@@ -66,6 +65,20 @@ bgColorInput.addEventListener("input", () => updateHexText(bgColorInput, bgHexTe
 // Initialize color tags
 updateHexText(fgColorInput, fgHexText);
 updateHexText(bgColorInput, bgHexText);
+
+// ==========================================
+// 3.2. Swap Colors Action
+// ==========================================
+if (swapColorsBtn) {
+    swapColorsBtn.addEventListener("click", () => {
+        const tempColor = fgColorInput.value;
+        fgColorInput.value = bgColorInput.value;
+        bgColorInput.value = tempColor;
+        
+        updateHexText(fgColorInput, fgHexText);
+        updateHexText(bgColorInput, bgHexText);
+    });
+}
 
 // ==========================================
 // 3.5. Parse URL parameters on load

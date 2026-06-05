@@ -43,7 +43,6 @@
                     <div class="input-group">
                         <div class="label-row">
                             <label for="distance">Radius (meters)</label>
-                            <span class="unit-indicator" id="distance_val_display">2000m</span>
                         </div>
                         <div class="slider-input-row">
                             <input type="range" id="distance_slider" min="500" max="10000" step="100" value="2000">
@@ -55,13 +54,23 @@
                     <div class="input-group">
                         <label>Color Customization</label>
                         <div class="color-picker-row">
-                            <div class="color-picker-wrapper">
+                                                    <div class="color-picker-wrapper">
                                 <span class="color-label">Foreground</span>
                                 <div class="color-input-container">
                                     <input type="color" name="fg_color" id="fg_color" value="#000000">
                                     <span class="color-hex-text" id="fg_hex_text">#000000</span>
                                 </div>
                             </div>
+                            
+                            <button type="button" id="swap_colors_btn" class="swap-btn" title="Swap Colors" aria-label="Swap colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m7 21-4-4 4-4"/>
+                                    <path d="M3 17h18"/>
+                                    <path d="m17 3 4 4-4 4"/>
+                                    <path d="M21 7H3"/>
+                                </svg>
+                            </button>
+                            
                             <div class="color-picker-wrapper">
                                 <span class="color-label">Background</span>
                                 <div class="color-input-container">
