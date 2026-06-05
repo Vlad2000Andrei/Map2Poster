@@ -68,6 +68,39 @@ updateHexText(fgColorInput, fgHexText);
 updateHexText(bgColorInput, bgHexText);
 
 // ==========================================
+// 3.5. Parse URL parameters on load
+// ==========================================
+function parseUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    
+    const locationParam = params.get("location");
+    if (locationParam) {
+        locationInput.value = locationParam;
+        toggleClearBtn();
+    }
+    
+    const distanceParam = params.get("distance");
+    if (distanceParam) {
+        updateDistance(distanceParam);
+    }
+    
+    const fgParam = params.get("fg_color") || params.get("fg");
+    if (fgParam) {
+        const formattedFg = fgParam.startsWith("#") ? fgParam : `#${fgParam}`;
+        fgColorInput.value = formattedFg;
+        updateHexText(fgColorInput, fgHexText);
+    }
+    
+    const bgParam = params.get("bg_color") || params.get("bg");
+    if (bgParam) {
+        const formattedBg = bgParam.startsWith("#") ? bgParam : `#${bgParam}`;
+        bgColorInput.value = formattedBg;
+        updateHexText(bgColorInput, bgHexText);
+    }
+}
+parseUrlParams();
+
+// ==========================================
 // 4. Onboarding Card Toggling
 // ==========================================
 function checkOnboarding() {
@@ -94,103 +127,324 @@ function generatePoster(e) {
 
     const formData = new FormData(form);
     const params = new URLSearchParams(formData);
-    const imageUrl = `/poster?${params.toString()}`;
 
     const loc = locationInput.value;
     const fg = fgColorInput.value;
     const bg = bgColorInput.value;
     const dist = distanceInput.value;
 
+    // Create and insert skeleton card
+    const skeletonCard = document.createElement("div");
+    skeletonCard.classList.add("skeleton-card");
+
+    const shimmerImage = document.createElement("div");
+    shimmerImage.classList.add("shimmer-image");
+
+    const progressIcon = document.createElement("div");
+    progressIcon.classList.add("progress-icon");
+    progressIcon.textContent = "🧭";
+
+    const progressStatus = document.createElement("div");
+    progressStatus.classList.add("progress-status");
+    progressStatus.textContent = "🛰️ Fetching map data from OpenStreetMap...";
+
+    shimmerImage.appendChild(progressIcon);
+    shimmerImage.appendChild(progressStatus);
+
+    const bar1 = document.createElement("div");
+    bar1.classList.add("shimmer-bar", "w-60");
+
+    const bar2 = document.createElement("div");
+    bar2.classList.add("shimmer-bar", "w-40");
+
+    skeletonCard.appendChild(shimmerImage);
+    skeletonCard.appendChild(bar1);
+    skeletonCard.appendChild(bar2);
+
+    // Insert at start of list
+    posterContainerList.insertBefore(skeletonCard, posterContainerList.firstChild);
+    checkOnboarding();
+
+    // Helper mapping for SSE status milestones
+    const statusMessages = {
+        fetching: "🛰️ Fetching map data from OpenStreetMap...",
+        parsing: "📈 Parsing road networks...",
+        plotting: "🎨 Plotting vectors...",
+        cropping: "✂️ Cropping and centering layout...",
+        finalizing: "✨ Finalizing print coordinates..."
+    };
+
+    function cleanupLoading() {
+        generateBtn.disabled = false;
+        generateBtn.querySelector(".spinner").style.display = "none";
+        generateBtn.querySelector(".btn-text").textContent = "Generate Poster";
+    }
+
+    const sseUrl = `/poster/generate?${params.toString()}`;
+    const eventSource = new EventSource(sseUrl);
+
+    eventSource.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.status === "error") {
+                eventSource.close();
+                showErrorCard(skeletonCard, data.message || "An unknown error occurred");
+                cleanupLoading();
+            } else if (data.status === "done") {
+                eventSource.close();
+                replaceWithPosterCard(skeletonCard, data.image_url, data.coords, loc, fg, bg, dist);
+                cleanupLoading();
+            } else {
+                const msg = statusMessages[data.status] || `Generating: ${data.status}...`;
+                progressStatus.textContent = msg;
+            }
+        } catch (err) {
+            eventSource.close();
+            showErrorCard(skeletonCard, "Failed to parse update from server");
+            cleanupLoading();
+        }
+    };
+
+    eventSource.onerror = (err) => {
+        eventSource.close();
+        showErrorCard(skeletonCard, "Connection lost or server error occurred");
+        cleanupLoading();
+    };
+}
+
+function replaceWithPosterCard(skeletonCard, imageUrl, coords, loc, fg, bg, dist) {
+    const card = document.createElement("div");
+    card.classList.add("poster-card");
+
+    const imgWrapper = document.createElement("div");
+    imgWrapper.classList.add("poster-img-wrapper");
+
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.classList.add("poster_img");
+    img.alt = `Road network map of ${loc}`;
+
+    imgWrapper.appendChild(img);
+    card.appendChild(imgWrapper);
+
+    // Metadata info
+    const info = document.createElement("div");
+    info.classList.add("poster-info");
+
+    const title = document.createElement("div");
+    title.classList.add("poster-title");
+    title.textContent = loc.toUpperCase();
+
+    const subtitle = document.createElement("div");
+    subtitle.classList.add("poster-sub");
+
+    // Format coordinates if returned by geocoder
+    let coordsDisplay = `${dist}m radius`;
+    if (coords && Array.isArray(coords) && coords.length === 2) {
+        const lat = coords[0];
+        const lon = coords[1];
+        if (typeof lat === "number" && typeof lon === "number") {
+            const latStr = `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}`;
+            const lonStr = `${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`;
+            coordsDisplay = `${latStr}, ${lonStr}`;
+        }
+    }
+
+    const coordsSpan = document.createElement("span");
+    coordsSpan.classList.add("poster-coords");
+    coordsSpan.textContent = coordsDisplay;
+
+    const swatches = document.createElement("div");
+    swatches.classList.add("swatch-group");
+
+    const swatchFg = document.createElement("div");
+    swatchFg.classList.add("color-swatch-circle");
+    swatchFg.style.backgroundColor = fg;
+    swatchFg.title = `Foreground: ${fg} (Click to use)`;
+    swatchFg.addEventListener("click", (e) => showColorMenu(e, swatchFg, fg));
+
+    const swatchBg = document.createElement("div");
+    swatchBg.classList.add("color-swatch-circle");
+    swatchBg.style.backgroundColor = bg;
+    swatchBg.title = `Background: ${bg} (Click to use)`;
+    swatchBg.addEventListener("click", (e) => showColorMenu(e, swatchBg, bg));
+
+    swatches.appendChild(swatchFg);
+    swatches.appendChild(swatchBg);
+
+    subtitle.appendChild(coordsSpan);
+    subtitle.appendChild(swatches);
+
+    info.appendChild(title);
+    info.appendChild(subtitle);
+    card.appendChild(info);
+
+    // Action Buttons
+    const actions = document.createElement("div");
+    actions.classList.add("poster-actions");
+
+    const downloadBtn = document.createElement("button");
+    downloadBtn.classList.add("card-btn");
+    downloadBtn.innerHTML = "📥 Download";
+    downloadBtn.addEventListener("click", () => {
+        downloadPoster(imageUrl, loc, dist);
+    });
+
+    const shareBtn = document.createElement("button");
+    shareBtn.classList.add("card-btn");
+    shareBtn.innerHTML = "🔗 Share";
+    shareBtn.addEventListener("click", () => {
+        sharePoster(imageUrl, loc, dist, fg, bg);
+    });
+
+    actions.appendChild(downloadBtn);
+    actions.appendChild(shareBtn);
+    card.appendChild(actions);
+
+    // Swap cards
+    skeletonCard.replaceWith(card);
+    checkOnboarding();
+}
+
+function downloadPoster(imageUrl, loc, dist) {
+    const sanitizedLoc = loc
+        .trim()
+        .replace(/[^a-zA-Z0-9\s-_,]/g, "")
+        .replace(/[\s,]+/g, "-");
+    const filename = `${sanitizedLoc}_${dist}m.png`;
+
     fetch(imageUrl)
         .then(response => {
-            if (!response.ok) throw new Error("Server error occurred");
+            if (!response.ok) throw new Error("Could not download file from server");
             return response.blob();
         })
         .then(blob => {
-            // Create modern poster card
-            const card = document.createElement("div");
-            card.classList.add("poster-card");
-
-            const imgWrapper = document.createElement("div");
-            imgWrapper.classList.add("poster-img-wrapper");
-
-            const img = document.createElement("img");
-            img.src = URL.createObjectURL(blob);
-            img.classList.add("poster_img");
-            img.alt = `Road network map of ${loc}`;
-
-            imgWrapper.appendChild(img);
-            card.appendChild(imgWrapper);
-
-            // Metadata info
-            const info = document.createElement("div");
-            info.classList.add("poster-info");
-
-            const title = document.createElement("div");
-            title.classList.add("poster-title");
-            title.textContent = loc.toUpperCase();
-
-            const subtitle = document.createElement("div");
-            subtitle.classList.add("poster-sub");
-
-            const coordsSpan = document.createElement("span");
-            coordsSpan.classList.add("poster-coords");
-            coordsSpan.textContent = `${dist}m radius`;
-
-            const swatches = document.createElement("div");
-            swatches.classList.add("swatch-group");
-
-            const swatchFg = document.createElement("div");
-            swatchFg.classList.add("color-swatch-circle");
-            swatchFg.style.backgroundColor = fg;
-            swatchFg.title = `Foreground: ${fg} (Click to use)`;
-            swatchFg.addEventListener("click", (e) => showColorMenu(e, swatchFg, fg));
-
-            const swatchBg = document.createElement("div");
-            swatchBg.classList.add("color-swatch-circle");
-            swatchBg.style.backgroundColor = bg;
-            swatchBg.title = `Background: ${bg} (Click to use)`;
-            swatchBg.addEventListener("click", (e) => showColorMenu(e, swatchBg, bg));
-
-            swatches.appendChild(swatchFg);
-            swatches.appendChild(swatchBg);
-
-            subtitle.appendChild(coordsSpan);
-            subtitle.appendChild(swatches);
-
-            info.appendChild(title);
-            info.appendChild(subtitle);
-            card.appendChild(info);
-
-            // Action Buttons (Mock/Placeholder for Issue 3 actions)
-            const actions = document.createElement("div");
-            actions.classList.add("poster-actions");
-
-            const downloadBtn = document.createElement("button");
-            downloadBtn.classList.add("card-btn");
-            downloadBtn.innerHTML = "📥 Download";
-
-            const shareBtn = document.createElement("button");
-            shareBtn.classList.add("card-btn");
-            shareBtn.innerHTML = "🔗 Share";
-
-            actions.appendChild(downloadBtn);
-            actions.appendChild(shareBtn);
-            card.appendChild(actions);
-
-            // Insert at start of list
-            posterContainerList.insertBefore(card, posterContainerList.firstChild);
-            checkOnboarding();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
         })
         .catch(err => {
-            alert(`Failed to generate poster: ${err.message}`);
-        })
-        .finally(() => {
-            // Re-enable form fields
-            generateBtn.disabled = false;
-            generateBtn.querySelector(".spinner").style.display = "none";
-            generateBtn.querySelector(".btn-text").textContent = "Generate Poster";
+            alert(`Download failed: ${err.message}`);
         });
+}
+
+function sharePoster(imageUrl, loc, dist, fg, bg) {
+    const sanitizedLoc = loc
+        .trim()
+        .replace(/[^a-zA-Z0-9\s-_,]/g, "")
+        .replace(/[\s,]+/g, "-");
+    const filename = `${sanitizedLoc}_${dist}m.png`;
+
+    fetch(imageUrl)
+        .then(response => {
+            if (!response.ok) throw new Error("Could not fetch file for sharing");
+            return response.blob();
+        })
+        .then(blob => {
+            const file = new File([blob], filename, { type: "image/png" });
+            const shareData = {
+                files: [file],
+                title: `Map2Poster - ${loc}`,
+                text: `Custom road map poster of ${loc}`
+            };
+
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                return navigator.share(shareData);
+            } else {
+                throw new Error("Web Share for files not supported");
+            }
+        })
+        .catch(err => {
+            if (err.name !== "AbortError") {
+                sharePosterLink(loc, dist, fg, bg);
+            }
+        });
+}
+
+function sharePosterLink(loc, dist, fg, bg) {
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set("location", loc);
+    url.searchParams.set("distance", dist);
+    url.searchParams.set("fg_color", fg);
+    url.searchParams.set("bg_color", bg);
+    copyToClipboard(url.toString());
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            showToast("🔗 Link copied to clipboard!");
+        })
+        .catch(() => {
+            alert("Could not copy link to clipboard. Please copy manually: " + text);
+        });
+}
+
+function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "share-toast";
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 10);
+    
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 2500);
+}
+
+function showErrorCard(skeletonCard, message) {
+    const card = document.createElement("div");
+    card.classList.add("poster-card", "error-card");
+
+    const content = document.createElement("div");
+    content.classList.add("error-content");
+
+    const header = document.createElement("div");
+    header.classList.add("error-header");
+
+    const dismissBtn = document.createElement("button");
+    dismissBtn.className = "error-close-btn";
+    dismissBtn.innerHTML = "&times;";
+    dismissBtn.title = "Dismiss";
+    dismissBtn.addEventListener("click", () => {
+        card.remove();
+        checkOnboarding();
+    });
+
+    header.appendChild(dismissBtn);
+    content.appendChild(header);
+
+    const icon = document.createElement("div");
+    icon.classList.add("error-badge-icon");
+    icon.textContent = "⚠️";
+    content.appendChild(icon);
+
+    const title = document.createElement("div");
+    title.classList.add("error-card-title");
+    title.textContent = "Generation Failed";
+    content.appendChild(title);
+
+    const desc = document.createElement("div");
+    desc.classList.add("error-description");
+    desc.textContent = message;
+    content.appendChild(desc);
+
+    card.appendChild(content);
+
+    skeletonCard.replaceWith(card);
+    checkOnboarding();
 }
 
 // ==========================================
