@@ -294,7 +294,7 @@ function replaceWithPosterCard(skeletonCard, imageUrl, coords, loc, fg, bg, dist
     shareBtn.classList.add("card-btn");
     shareBtn.innerHTML = "🔗 Share";
     shareBtn.addEventListener("click", () => {
-        sharePoster(loc, dist, fg, bg);
+        sharePoster(imageUrl, loc, dist, fg, bg);
     });
 
     actions.appendChild(downloadBtn);
@@ -333,29 +333,46 @@ function downloadPoster(imageUrl, loc, dist) {
         });
 }
 
-function sharePoster(loc, dist, fg, bg) {
+function sharePoster(imageUrl, loc, dist, fg, bg) {
+    const sanitizedLoc = loc
+        .trim()
+        .replace(/[^a-zA-Z0-9\s-_,]/g, "")
+        .replace(/[\s,]+/g, "-");
+    const filename = `${sanitizedLoc}_${dist}m.png`;
+
+    fetch(imageUrl)
+        .then(response => {
+            if (!response.ok) throw new Error("Could not fetch file for sharing");
+            return response.blob();
+        })
+        .then(blob => {
+            const file = new File([blob], filename, { type: "image/png" });
+            const shareData = {
+                files: [file],
+                title: `Map2Poster - ${loc}`,
+                text: `Custom road map poster of ${loc}`
+            };
+
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                return navigator.share(shareData);
+            } else {
+                throw new Error("Web Share for files not supported");
+            }
+        })
+        .catch(err => {
+            if (err.name !== "AbortError") {
+                sharePosterLink(loc, dist, fg, bg);
+            }
+        });
+}
+
+function sharePosterLink(loc, dist, fg, bg) {
     const url = new URL(window.location.origin + window.location.pathname);
     url.searchParams.set("location", loc);
     url.searchParams.set("distance", dist);
     url.searchParams.set("fg_color", fg);
     url.searchParams.set("bg_color", bg);
-    
-    const shareData = {
-        title: `Map2Poster - ${loc}`,
-        text: `Check out this custom road map poster of ${loc} that I generated!`,
-        url: url.toString()
-    };
-
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        navigator.share(shareData)
-            .catch(err => {
-                if (err.name !== "AbortError") {
-                    copyToClipboard(url.toString());
-                }
-            });
-    } else {
-        copyToClipboard(url.toString());
-    }
+    copyToClipboard(url.toString());
 }
 
 function copyToClipboard(text) {
