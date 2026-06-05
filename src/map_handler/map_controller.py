@@ -81,17 +81,13 @@ def generate_poster():
 
         # Stream the status updates back to the client
         while True:
-            try:
-                status, payload = q.get(timeout=60.0) # 60 second timeout per step is very safe
-                data = {"status": status}
-                if payload:
-                    data.update(payload)
-                yield f"data: {json.dumps(data)}\n\n"
-                
-                if status in ["done", "error"]:
-                    break
-            except queue.Empty:
-                yield f"data: {json.dumps({'status': 'error', 'message': 'Generation timed out waiting for server steps'})}\n\n"
+            status, payload = q.get()
+            data = {"status": status}
+            if payload:
+                data.update(payload)
+            yield f"data: {json.dumps(data)}\n\n"
+            
+            if status in ["done", "error"]:
                 break
 
     response = Response(event_stream(), mimetype='text/event-stream')
